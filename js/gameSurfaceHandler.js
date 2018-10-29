@@ -47,7 +47,7 @@ var declarations = {
 					this.print(""+declarations[""+actual[0]]);
 				}
 			}else{
-				this.print("Error:\tcannot find: \"" + actual[0] + "\"")
+				this.print("Error: cannot find: \"" + actual[0] + "\"")
 			}
 		},
 	print:
@@ -60,19 +60,18 @@ var declarations = {
 					var arrayWithoutNewLine = arguments[i].split("\\n");
 					console.log(arrayWithoutNewLine);
 					for(k in arrayWithoutNewLine){
-						if(arrayWithoutNewLine[k] == ""){
+						if(k > 0){
 							this.screen.push(toPush);
 							toPush = "";
-						}else{
-							if(k > 0){
-								this.screen.push(toPush);
-								toPush = "";
-							}
-							toPush+=arrayWithoutNewLine[k];
-							
-							
 						}
+						toPush+=arrayWithoutNewLine[k];
+						if(k == arrayWithoutNewLine.length-1 && toPush != ""){
+							/* If there is a word in toPush and we are in the last element of arrayWithoutNewLine, add a space after it. */
+							toPush+=" ";
+						}
+						console.log(toPush + " " + k);
 					}
+					
 					/*
 					//Below is old code that I'm just leaving here for now. It kind of works, but not really. That is why I went with the above method.
 					toPush+=arguments[i].replace("\\n", "");
@@ -87,7 +86,9 @@ var declarations = {
 					}
 				}
 			}
-			this.screen.push(toPush);
+			if(toPush != ""){
+				this.screen.push(toPush.trim());
+			}
 			
 		},
 	clear:
@@ -131,7 +132,8 @@ var declarations = {
 			if (arguments[0].length == 0){
 				return hash;
 			}
-			var toHash = arguments[0]+arguments[1];
+			var toHash = (arguments[1] == undefined) ? arguments[0] : arguments[0]+arguments[1];
+			console.log(toHash);
 			for (i = 0; i < toHash.length; i++) {
 				var c = toHash.charCodeAt(i);
 				hash = ((hash<<5)-hash)+c;

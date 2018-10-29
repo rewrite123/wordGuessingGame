@@ -34,21 +34,61 @@ var declarations = {
 	call: 
 		function(){
 			var actual = arguments[0].split(" ");
-			var params = "";
+			var params = [];
 			for(i in actual){
 				if(i > 0){
-					params+= " "+actual[i];
+					params.push(actual[i]);
 				}
 			}
 			if(actual[0] in this){
-				declarations[""+actual[0]](params);
+				if( typeof declarations[""+actual[0]] == "function"){
+					declarations[""+actual[0]].apply(this, params);
+				}else{
+					this.print(""+declarations[""+actual[0]]);
+				}
 			}else{
-				this.print("That function does not exist!")
+				this.print("Error:\tcannot find: \"" + actual[0] + "\"")
 			}
 		},
 	print:
 		function(){
-			this.screen.push(arguments[0]);
+			/* toPush is the line we are prepping to push into the screen. */
+			var toPush = "";
+			for(i in arguments){
+				if((""+arguments[i]).includes("\\n") || (""+arguments[i]).includes("\n")){
+					/* This is what triggers when there is a newline escape in the arguments we are supposed to be printing. */
+					var arrayWithoutNewLine = arguments[i].split("\\n");
+					console.log(arrayWithoutNewLine);
+					for(k in arrayWithoutNewLine){
+						if(arrayWithoutNewLine[k] == ""){
+							this.screen.push(toPush);
+							toPush = "";
+						}else{
+							if(k > 0){
+								this.screen.push(toPush);
+								toPush = "";
+							}
+							toPush+=arrayWithoutNewLine[k];
+							
+							
+						}
+					}
+					/*
+					//Below is old code that I'm just leaving here for now. It kind of works, but not really. That is why I went with the above method.
+					toPush+=arguments[i].replace("\\n", "");
+					this.screen.push(toPush);
+					toPush = "";
+					*/
+				}else{
+					/* This is what we do when there is no no new line escape in our arguments. */
+					toPush+=arguments[i];
+					if(i < arguments.length){
+						toPush+=" ";
+					}
+				}
+			}
+			this.screen.push(toPush);
+			
 		},
 	clear:
 		function(){
@@ -56,36 +96,57 @@ var declarations = {
 		},
 	user: 
 		"Greenman",
-	getUser: 
-		function(){
-			this.print(this.user);
-		},
 	setUser: 
 		function(){
 			this.user = arguments[0];
 		},
 	password: 
 		"password",
+	setPassword:
+		function(){
+			this.password  = Array.prototype.slice.call(arguments).join(" ");
+			/* Fukkin bug below */
+			this.print("New password: \\n" + this.password);
+		},
+	lock: 
+		[],
 	salt: 
 		"salt",
+	setSalt:
+		function(){
+			this.salt = Array.prototype.slice.call(arguments).join(" ");
+		},
 	login: 
 		function(){
 			
 		},
 	hash:
+		/* 
+			Happily stolen from "https://stackoverflow.com/questions/194846/is-there-any-kind-of-hash-code-function-in-javascript" with a few edits to make it work. 
+			I know I should really be using the sha256 hash, but I figure this will do for a simple project like this. 
+			I would not use this is production however. 
+		*/
 		function(){
 			var hash = 0;
-			if (this.password.length == 0){
+			if (arguments[0].length == 0){
 				return hash;
 			}
-			var toHash = this.password+this.salt;
+			var toHash = arguments[0]+arguments[1];
 			for (i = 0; i < toHash.length; i++) {
-				char = toHash.charCodeAt(i);
-				hash = ((hash<<5)-hash)+char;
+				var c = toHash.charCodeAt(i);
+				hash = ((hash<<5)-hash)+c;
 				hash = hash & hash; // Convert to 32bit integer
 			}
-			print(hash);
+			this.print("hash: " + hash);
 			return hash;
+		},
+	generateLock: 
+		function(){
+			var lockToBe = this.password.split("");
+			for(i in lockToBe){
+				lockToBe[i] = this.hash(lockToBe[i], this.salt);
+			}
+			this.lock = lockToBe;
 		}
 };
 

@@ -119,7 +119,10 @@ var declarations = {
 		},
 	login: 
 		function(){
-			
+			var attempt = Array.prototype.slice.call(arguments).join(" ");
+			if(this.hash(attempt, this.salt) == this.lock[0]){
+				this.print("Password accepted!", "\nWelcome ", this.user + "!");
+			}
 		},
 	hash:
 		/* 
@@ -139,12 +142,13 @@ var declarations = {
 				hash = ((hash<<5)-hash)+c;
 				hash = hash & hash; // Convert to 32bit integer
 			}
-			this.print("hash: " + hash);
+			//this.print("hash: " + hash);
 			return hash;
 		},
 	generateLock: 
 		function(){
 			var lockToBe = this.password.split("");
+			lockToBe.unshift(this.password);
 			for(i in lockToBe){
 				lockToBe[i] = this.hash(lockToBe[i], this.salt);
 			}
@@ -160,6 +164,21 @@ document.addEventListener("keydown", function(e){
 		declarations.screen.push("");
 	}else if(e.keyCode == 16 || e.keyCode == 17 || e.keyCode == 18 || e.keyCode == 20 || e.keyCode == 91){
 		
+	}else if(e.keyCode == 37){
+		//left arrow
+	}else if(e.keyCode == 38){
+		//up arrow
+		for(i = (declarations.screen.length > 0) ? declarations.screen.length-1 : 0; i > 0; i--){
+			if(declarations.screen[i] != declarations.screen[declarations.screen.length-1]){
+				declarations.screen[declarations.screen.length-1] = declarations.screen[i];
+				i=0;
+			}
+		}
+		declarations.screen[declarations.screen.length-1] = (declarations.screen.length > 1) ? declarations.screen[declarations.screen.length-2] : "";
+	}else if(e.keyCode == 39){
+		//right arrow
+	}else if(e.keyCode == 40){
+		//down arrow
 	}else{
 		declarations.screen[declarations.screen.length-1]+=e.key;
 	}
